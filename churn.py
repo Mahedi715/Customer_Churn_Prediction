@@ -287,7 +287,7 @@ y = df_telco_transformed.loc[:, 'Churn']
 
 # split the data in training and testing sets
 
-X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size=0.25,random_state=40, shuffle=True)
+X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size=0.55,random_state=40, shuffle=True)
 #ok print(X_train, X_test, y_train, y_test)
 
 
