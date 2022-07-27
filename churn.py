@@ -13,6 +13,13 @@ from sklearn.metrics import accuracy_score
 # import telecom dataset into a pandas data frame
 df_telco = pd.read_csv("Customer-Churn.csv")
 
+# import warnings filter
+from warnings import simplefilter
+# ignore all future warnings
+simplefilter(action='ignore', category=FutureWarning)
+
+
+
 # visualize column names
 #OK print(df_telco.columns)
 
@@ -141,7 +148,7 @@ account_columns = ['Contract', 'PaperlessBilling', 'PaymentMethod']
 # stacked plot of customer account columns
 percentage_stacked_plot(account_columns, 'Customer Account Information')
 
-#not working! denographics for other data columns:
+#not working! demographics for other data columns:
 """
 def histogram_plots(columns_to_plot, super_title):
     '''
@@ -209,8 +216,8 @@ percentage_stacked_plot(services_columns, 'Services Information')
 
 #mutual information
 from sklearn.metrics import mutual_info_score
-# function that computes the mutual infomation score between a categorical serie and the column Churn
-# function that computes the mutual infomation score between a categorical serie and the column Churn
+# function that computes the mutual infomation score between a categorical series and the column Churn
+# function that computes the mutual infomation score between a categorical series and the column Churn
 def compute_mutual_information(categorical_serie):
     return mutual_info_score(categorical_serie, df_telco.Churn)
 
@@ -287,7 +294,7 @@ y = df_telco_transformed.loc[:, 'Churn']
 
 # split the data in training and testing sets
 
-X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size=0.25,random_state=40, shuffle=True)
+X_train, X_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size=.2,random_state=40, shuffle=True)
 #ok print(X_train, X_test, y_train, y_test)
 
 
@@ -311,7 +318,7 @@ def create_models(seed=2):
     models.append(('logistic_regression', LogisticRegression(solver='lbfgs', max_iter=1000,random_state=seed)))
     models.append(('support_vector_machines', SVC(random_state=seed)))
     models.append(('random_forest', RandomForestClassifier(random_state=seed)))
-    models.append(('gradient_boosting', GradientBoostingClassifier(random_state=seed)))
+    models.append(('gradient_boost', GradientBoostingClassifier(random_state=seed)))
 
 
     return models
@@ -339,4 +346,43 @@ for name, model in models:
     results.append(accuracy)
     names.append(name)
     # print classifier accuracy
-    print('Classifier: {}, Accuracy: {}'.format(name, accuracy))
+    # print('Classifier: {}, Accuracy: {}'.format(name, accuracy))
+
+
+
+# hyper Tuning
+
+# define the parameter grid
+grid_parameters = {'n_estimators': [80, 90, 100, 110, 115, 120],
+                   'max_depth': [3, 4, 5, 6],
+                   'max_features': ['sqrt', 'log2'],
+                   'min_samples_split': [2, 3, 4, 5]}
+
+
+
+from sklearn.model_selection import RandomizedSearchCV
+# define the RandomizedSearchCV class for trying different parameter combinations
+random_search = RandomizedSearchCV(estimator=GradientBoostingClassifier(),
+                                   param_distributions=grid_parameters,
+                                   cv=5,
+                                   n_iter=150,
+                                   n_jobs=-1)
+
+# fitting the model for random search
+random_search.fit(X_train, y_train)
+
+# print best parameter after tuning
+print(random_search.best_params_)
+
+
+# confusion matrix
+from sklearn.metrics import confusion_matrix
+
+# make the predictions
+random_search_predictions = random_search.predict(X_test)
+
+# construct the confusion matrix
+confusion_matrix = confusion_matrix(y_test, random_search_predictions)
+
+# visualize the confusion matrix
+print(confusion_matrix)
